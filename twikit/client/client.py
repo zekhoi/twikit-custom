@@ -1205,7 +1205,8 @@ class Client:
         share_with_followers: bool = False,
         is_note_tweet: bool = False,
         richtext_options: list[dict] = None,
-        edit_tweet_id: str | None = None
+        edit_tweet_id: str | None = None,
+        disallowed_reply_options: dict | None = None
     ) -> Tweet:
         """
         Creates a new tweet on Twitter with the specified
@@ -1293,7 +1294,8 @@ class Client:
         response, _ = await self.gql.create_tweet(
             is_note_tweet, text, media_entities, poll_uri,
             reply_to, attachment_url, community_id, share_with_followers,
-            richtext_options, edit_tweet_id, limit_mode
+            richtext_options, edit_tweet_id, limit_mode,
+            disallowed_reply_options
         )
         if 'errors' in response:
             raise_exceptions_from_response(response['errors'])

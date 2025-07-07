@@ -34,7 +34,7 @@ class Endpoint:
     SEARCH_TIMELINE = url('flaR-PUMshxFWZWPNpq4zA/SearchTimeline')
     SIMILAR_POSTS = url('EToazR74i0rJyZYalfVEAQ/SimilarPosts')
     CREATE_NOTE_TWEET = url('iCUB42lIfXf9qPKctjE5rQ/CreateNoteTweet')
-    CREATE_TWEET = url('SiM_cAu83R0wnrpmKQQSEw/CreateTweet')
+    CREATE_TWEET = url('ZOwk2dsf5y9zC9jMDFmPHQ/CreateTweet')
     CREATE_SCHEDULED_TWEET = url('LCVzRQGxOaGnOnYH01NQXg/CreateScheduledTweet')
     DELETE_TWEET = url('VaenaVgh5q5ih7kvyVjgtg/DeleteTweet')
     USER_BY_SCREEN_NAME = url('NimuplG1OB7Fd2btCLdBOw/UserByScreenName')
@@ -170,7 +170,8 @@ class GQLClient:
         self, is_note_tweet, text, media_entities,
         poll_uri, reply_to, attachment_url,
         community_id, share_with_followers,
-        richtext_options, edit_tweet_id, limit_mode
+        richtext_options, edit_tweet_id, limit_mode,
+        disallowed_reply_options=None
     ):
         variables = {
             'tweet_text': text,
@@ -180,6 +181,7 @@ class GQLClient:
                 'possibly_sensitive': False
             },
             'semantic_annotation_ids': [],
+            'disallowed_reply_options': disallowed_reply_options
         }
 
         if poll_uri is not None:
