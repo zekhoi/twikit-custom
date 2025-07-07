@@ -91,7 +91,7 @@ class User:
         legacy = data['legacy']
 
         self.id: str = data['rest_id']
-        self.created_at: str = legacy['created_at']
+        self.created_at: str = legacy.get('created_at', '')
         self.name: str = legacy['name']
         self.screen_name: str = legacy['screen_name']
         self.profile_image_url: str = legacy['profile_image_url_https']
