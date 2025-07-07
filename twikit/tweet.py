@@ -100,7 +100,7 @@ class Tweet:
     def __init__(self, client: Client, data: dict, user: User = None) -> None:
         self._client = client
         self._data = data
-        self._legacy: dict = self._data['legacy']
+        self._legacy: dict = self._data.get('legacy', {})
         self.user = user
 
         self.replies: Result[Tweet] | None = None
@@ -114,7 +114,7 @@ class Tweet:
 
     @property
     def created_at(self) -> str:
-        return self._legacy['created_at']
+        return self._legacy.get('created_at', '')
 
     @property
     def text(self) -> str:
