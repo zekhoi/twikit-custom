@@ -646,7 +646,19 @@ class Client:
         .set_cookies
         """
         with open(path, 'r', encoding='utf-8') as f:
-            self.set_cookies(json.load(f))
+            data = json.load(f)
+            
+            # Handle both standard dict format and cookie object array format
+            if isinstance(data, list):
+                # Convert cookie object array to dict format
+                cookies = {}
+                for cookie in data:
+                    if isinstance(cookie, dict) and 'name' in cookie and 'value' in cookie:
+                        cookies[cookie['name']] = cookie['value']
+                self.set_cookies(cookies)
+            else:
+                # Standard dict format
+                self.set_cookies(data)
 
     def set_delegate_account(self, user_id: str | None) -> None:
         """
