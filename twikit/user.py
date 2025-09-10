@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal
 from .utils import timestamp_to_datetime
 
 if TYPE_CHECKING:
-    from httpx import Response
+    from curl_cffi.requests import Response
 
     from .client.client import Client
     from .message import Message
@@ -176,7 +176,7 @@ class User:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         See Also
@@ -191,7 +191,7 @@ class User:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         See Also
@@ -211,7 +211,7 @@ class User:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         See Also
@@ -231,7 +231,7 @@ class User:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         See Also
@@ -251,7 +251,7 @@ class User:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         See Also
@@ -271,7 +271,7 @@ class User:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         See Also

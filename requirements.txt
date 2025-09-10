@@ -1,4 +1,4 @@
-httpx[socks]
+curl_cffi
 filetype
 beautifulsoup4
 pyotp

@@ -13,7 +13,7 @@ setup(
     name='twikit',
     version=version,
     install_requires=[
-        'httpx[socks]',
+        'curl_cffi',
         'filetype',
         'beautifulsoup4',
         'pyotp',
@@ -22,11 +22,11 @@ setup(
         'm3u8',
         'Js2Py-3.13'
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     description='Twitter API wrapper for python with **no API key required**.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     license='MIT',
-    url='https://github.com/d60/twikit',
+    url='https://codeberg.org/phin/twikit',
     package_data={'twikit': ['py.typed']}
 )

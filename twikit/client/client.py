@@ -12,8 +12,8 @@ from urllib.parse import urlparse
 
 import filetype
 import pyotp
-from httpx import AsyncClient, AsyncHTTPTransport, Response
-from httpx._utils import URLPattern
+from curl_cffi.requests import AsyncSession as AsyncClient, Response
+from typing import Optional
 
 from .._captcha import Capsolver
 from ..bookmark import BookmarkFolder
@@ -53,8 +53,7 @@ from ..utils import (
     build_tweet_data,
     build_user_data,
     find_dict,
-    find_entry_by_type,
-    httpx_transport_to_url
+    find_entry_by_type
 )
 from ..x_client_transaction.utils import handle_x_migration
 from ..x_client_transaction import ClientTransaction
@@ -100,13 +99,17 @@ class Client:
         if 'proxies' in kwargs:
             message = (
                 "The 'proxies' argument is now deprecated. Use 'proxy' "
-                "instead. https://github.com/encode/httpx/pull/2879"
+                "instead. curl_cffi uses proxies parameter instead"
             )
             warnings.warn(message)
 
-        self.http = AsyncClient(proxy=proxy, **kwargs)
+        self.http = AsyncClient(
+            proxies=proxy,
+            impersonate="chrome136",
+            **kwargs
+        )
         self.language = language
-        self.proxy = proxy
+        self._proxy = proxy
         self.captcha_solver = captcha_solver
         if captcha_solver is not None:
             captcha_solver.client = self
@@ -216,25 +219,24 @@ class Client:
 
     def _remove_duplicate_ct0_cookie(self) -> None:
         cookies = {}
-        for cookie in self.http.cookies.jar:
-            if 'ct0' in cookies and cookie.name == 'ct0':
+        for name, value in self.http.cookies.items():
+            if 'ct0' in cookies and name == 'ct0':
                 continue
-            cookies[cookie.name] = cookie.value
-        self.http.cookies = list(cookies.items())
+            cookies[name] = value
+        self.http.cookies.clear()
+        self.http.cookies.update(cookies)
 
     @property
     def proxy(self) -> str:
         ':meta private:'
-        transport: AsyncHTTPTransport = self.http._mounts.get(URLPattern('all://'))
-        if transport is None:
-            return None
-        if not hasattr(transport._pool, '_proxy_url'):
-            return None
-        return httpx_transport_to_url(transport)
+        return self._proxy
 
-    @proxy.setter
+    @proxy.setter  
     def proxy(self, url: str) -> None:
-        self.http._mounts = {URLPattern('all://'): AsyncHTTPTransport(proxy=url)}
+        self._proxy = url
+        # Update the proxies in the AsyncSession
+        if hasattr(self.http, 'proxies'):
+            self.http.proxies = url
 
     def _get_csrf_token(self) -> str:
         """
@@ -1125,7 +1127,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -1372,7 +1374,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -1715,7 +1717,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
         """
         _, response = await self.gql.delete_scheduled_tweet(tweet_id)
@@ -2103,7 +2105,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -2129,7 +2131,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -2155,7 +2157,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -2181,7 +2183,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -2211,7 +2213,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -2236,7 +2238,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -2324,7 +2326,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -2406,7 +2408,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
         """
         _, response = await self.gql.delete_bookmark_folder(folder_id)
@@ -3023,7 +3025,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -3057,7 +3059,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -3084,7 +3086,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -3306,7 +3308,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -3330,7 +3332,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
         """
         _, response = await self.v11.conversation_update_name(group_id, name)
@@ -3383,7 +3385,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
 
         Examples
@@ -3405,7 +3407,7 @@ class Client:
 
         Returns
         -------
-        :class:`httpx.Response`
+        :class:`curl_cffi.requests.Response`
             Response returned from twitter api.
         """
         _, response = await self.gql.delete_list_banner(list_id)
