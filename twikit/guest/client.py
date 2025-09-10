@@ -6,8 +6,7 @@ from functools import partial
 from typing import Any, Literal
 from urllib.parse import urlparse
 
-from httpx import AsyncClient, AsyncHTTPTransport, Response
-from httpx._utils import URLPattern
+from curl_cffi.requests import AsyncSession as AsyncClient, Response
 
 from ..client.gql import GQLClient
 from ..client.v11 import V11Client
@@ -22,7 +21,7 @@ from ..errors import (
     TwitterException,
     Unauthorized
 )
-from ..utils import Result, find_dict, find_entry_by_type, httpx_transport_to_url
+from ..utils import Result, find_dict, find_entry_by_type
 from ..x_client_transaction import ClientTransaction
 from .tweet import Tweet
 from .user import User
@@ -79,13 +78,17 @@ class GuestClient:
         if 'proxies' in kwargs:
             message = (
                 "The 'proxies' argument is now deprecated. Use 'proxy' "
-                "instead. https://github.com/encode/httpx/pull/2879"
+                "instead. curl_cffi uses proxies parameter instead"
             )
             warnings.warn(message)
 
-        self.http = AsyncClient(proxy=proxy, **kwargs)
+        self.http = AsyncClient(
+            proxies=proxy,
+            impersonate="chrome136",
+            **kwargs
+        )
         self.language = language
-        self.proxy = proxy
+        self._proxy = proxy
 
         self._token = TOKEN
         self._user_agent = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
@@ -161,20 +164,14 @@ class GuestClient:
     @property
     def proxy(self) -> str:
         ':meta private:'
-        transport: AsyncHTTPTransport = self.http._mounts.get(
-            URLPattern('all://')
-        )
-        if transport is None:
-            return None
-        if not hasattr(transport._pool, '_proxy_url'):
-            return None
-        return httpx_transport_to_url(transport)
+        return self._proxy
 
     @proxy.setter
     def proxy(self, url: str) -> None:
-        self.http._mounts = {
-            URLPattern('all://'): AsyncHTTPTransport(proxy=url)
-        }
+        self._proxy = url
+        # Update the proxies in the AsyncSession
+        if hasattr(self.http, 'proxies'):
+            self.http.proxies = url
 
     @property
     def _base_headers(self) -> dict[str, str]:
