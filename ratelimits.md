@@ -1,6 +1,18 @@
 # Rate Limits
 
-**The rate limits reset every 15 minutes.**
+Some endpoints have rate-limits. Here is a guide to each (that I have discovered)
+
+## Daily Ratelimits
+
+**These rate limits reset every day**
+
+| Functions                             | Limit | Endpoint                            |
+|---------------------------------------|-------|-------------------------------------|
+| create_tweet                          | 399   | CreateTweet                         |
+
+## 15-Minute Ratelimits
+
+**These rate limits reset every 15 minutes.**
 
 | Functions                             | Limit | Endpoint                            |
 |---------------------------------------|-------|-------------------------------------|
