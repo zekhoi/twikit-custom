@@ -104,7 +104,7 @@ class Client:
             warnings.warn(message)
 
         self.http = AsyncClient(
-            proxies=proxy,
+            proxy=proxy,
             impersonate="chrome136",
             **kwargs
         )
