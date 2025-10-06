@@ -18,6 +18,7 @@ from ..constants import (
     USER_HIGHLIGHTS_TWEETS_FEATURES
 )
 from ..utils import flatten_params, get_query_id
+from ..graphql_operations import get_query_id as get_dynamic_query_id
 
 if TYPE_CHECKING:
     from ..guest.client import GuestClient
@@ -27,78 +28,307 @@ if TYPE_CHECKING:
 
 
 class Endpoint:
-    @staticmethod
-    def url(path):
-        return f'https://{DOMAIN}/i/api/graphql/{path}'
+    """
+    GraphQL endpoint manager with dynamic query ID fetching.
 
-    SEARCH_TIMELINE = url('4_KDNnhadq51k4IU9y6Nww/SearchTimeline')
-    SIMILAR_POSTS = url('JZI0rR95OjpoijfCYD5Bvw/SimilarPosts')
-    CREATE_NOTE_TWEET = url('fYQvDY-3RRWP3Afosgavhw/CreateNoteTweet')
-    CREATE_TWEET = url('ZSBCfCefJFumbPcLcwR64Q/CreateTweet')
-    CREATE_SCHEDULED_TWEET = url('LCVzRQGxOaGnOnYH01NQXg/CreateScheduledTweet')
-    DELETE_TWEET = url('VaenaVgh5q5ih7kvyVjgtg/DeleteTweet')
-    USER_BY_SCREEN_NAME = url('96tVxbPqMZDoYB5pmzezKA/UserByScreenName')
-    USER_BY_REST_ID = url('FEomBoY_XkBgfqBPWktRMw/UserByRestId')
-    TWEET_DETAIL = url('JgryuItLZQ9V56vHjGIWWw/TweetDetail')
-    TWEET_RESULT_BY_REST_ID = url('URPP6YZ5eDCjdVMSREn4gg/TweetResultByRestId')
-    FETCH_SCHEDULED_TWEETS = url('ITtjAzvlZni2wWXwf295Qg/FetchScheduledTweets')
-    DELETE_SCHEDULED_TWEET = url('CTOVqej0JBXAZSwkp1US0g/DeleteScheduledTweet')
-    RETWEETERS = url('X-XEqG5qHQSAwmvy00xfyQ/Retweeters')
-    FAVORITERS = url('LLkw5EcVutJL6y-2gkz22A/Favoriters')
-    FETCH_COMMUNITY_NOTE = url('fKWPPj271aTM-AB9Xp48IA/BirdwatchFetchOneNote')
-    USER_TWEETS = url('oBjKz90dxeaKJLDRsW9RPw/UserTweets')
-    USER_TWEETS_AND_REPLIES = url('V-upWd0yOl6uMgrfJvf5zQ/UserTweetsAndReplies')
-    USER_MEDIA = url('1sfLYBlfEneWDhkHSv_9hw/UserMedia')
-    USER_LIKES = url('Lrbi1V3Vw4X_kYR2X1ogAg/Likes')
-    USER_HIGHLIGHTS_TWEETS = url('FAmk6_XjKCHU4ztapxoWTw/UserHighlightsTweets')
-    HOME_TIMELINE = url('i-osUr1ggVtNkzSgVkUdrA/HomeTimeline')
-    HOME_LATEST_TIMELINE = url('CbqC-3PKr4m5zDk66V-QDw/HomeLatestTimeline')
-    FAVORITE_TWEET = url('lI07N6Otwv1PhnEgXILM7A/FavoriteTweet')
-    UNFAVORITE_TWEET = url('ZYKSe-w7KEslx3JhSIk5LA/UnfavoriteTweet')
-    CREATE_RETWEET = url('ojPdsZsimiJrUGLR1sjUtA/CreateRetweet')
-    DELETE_RETWEET = url('iQtK4dl5hBmXewYZuEOKVw/DeleteRetweet')
-    CREATE_BOOKMARK = url('aoDbu3RHznuiSkQ9aNM67Q/CreateBookmark')
-    BOOKMARK_TO_FOLDER = url('4KHZvvNbHNf07bsgnL9gWA/bookmarkTweetToFolder')
-    DELETE_BOOKMARK = url('Wlmlj2-xzyS1GN3a6cj-mQ/DeleteBookmark')
-    BOOKMARKS = url('qToeLeMs43Q8cr7tRYXmaQ/Bookmarks')
-    BOOKMARK_FOLDER_TIMELINE = url('8HoabOvl7jl9IC1Aixj-vg/BookmarkFolderTimeline')
-    BOOKMARKS_ALL_DELETE = url('skiACZKC1GDYli-M8RzEPQ/BookmarksAllDelete')
-    BOOKMARK_FOLDERS_SLICE = url('i78YDd0Tza-dV4SYs58kRg/BookmarkFoldersSlice')
-    EDIT_BOOKMARK_FOLDER = url('a6kPp1cS1Dgbsjhapz1PNw/EditBookmarkFolder')
-    DELETE_BOOKMARK_FOLDER = url('2UTTsO-6zs93XqlEUZPsSg/DeleteBookmarkFolder')
-    CREATE_BOOKMARK_FOLDER = url('6Xxqpq8TM_CREYiuof_h5w/createBookmarkFolder')
-    FOLLOWERS = url('n0DYVxSy2skgJTZJjCTEIg/Followers')
-    BLUE_VERIFIED_FOLLOWERS = url('viXlSXeFlYuahCfXmj8zNw/BlueVerifiedFollowers')
-    FOLLOWERS_YOU_KNOW = url('OfPaUXl4XICEHKg_GcdIiQ/FollowersYouKnow')
-    FOLLOWING = url('XKrIB4_YBx_J3JsUyDbruw/Following')
-    USER_CREATOR_SUBSCRIPTIONS = url('Oak_1u8he9cgVprF8L1GTA/UserCreatorSubscriptions')
-    USER_DM_REACTION_MUTATION_ADD_MUTATION = url('VyDyV9pC2oZEj6g52hgnhA/useDMReactionMutationAddMutation')
-    USER_DM_REACTION_MUTATION_REMOVE_MUTATION = url('bV_Nim3RYHsaJwMkTXJ6ew/useDMReactionMutationRemoveMutation')
-    DM_MESSAGE_DELETE_MUTATION = url('BJ6DtxA2llfjnRoRjaiIiw/DMMessageDeleteMutation')
-    ADD_PARTICIPANTS_MUTATION = url('oBwyQ0_xVbAQ8FAyG0pCRA/AddParticipantsMutation')
-    CREATE_LIST = url('EYg7JZU3A1eJ-wr2eygPHQ/CreateList')
-    EDIT_LIST_BANNER = url('t_DsROHldculsB0B9BUAWw/EditListBanner')
-    DELETE_LIST_BANNER = url('Y90WuxdWugtMRJhkXTdvzg/DeleteListBanner')
-    UPDATE_LIST = url('dIEI1sbSAuZlxhE0ggrezA/UpdateList')
-    LIST_ADD_MEMBER = url('lLNsL7mW6gSEQG6rXP7TNw/ListAddMember')
-    LIST_REMOVE_MEMBER = url('cvDFkG5WjcXV0Qw5nfe1qQ/ListRemoveMember')
-    LIST_MANAGEMENT_PACE_TIMELINE = url('47170qwZCt5aFo9cBwFoNA/ListsManagementPageTimeline')
-    LIST_BY_REST_ID = url('9hbYpeVBMq8-yB8slayGWQ/ListByRestId')
-    LIST_LATEST_TWEETS_TIMELINE = url('HjsWc-nwwHKYwHenbHm-tw/ListLatestTweetsTimeline')
-    LIST_MEMBERS = url('BQp2IEYkgxuSxqbTAr1e1g/ListMembers')
-    LIST_SUBSCRIBERS = url('74wGEkaBxrdoXakWTWMxRQ/ListSubscribers')
-    SEARCH_COMMUNITY = url('daVUkhfHn7-Z8llpYVKJSw/CommunitiesSearchQuery')
-    COMMUNITY_QUERY = url('lUBKrilodgg9Nikaw3cIiA/CommunityQuery')
-    COMMUNITY_MEDIA_TIMELINE = url('Ht5K2ckaZYAOuRFmFfbHig/CommunityMediaTimeline')
-    COMMUNITY_TWEETS_TIMELINE = url('mhwSsmub4JZgHcs0dtsjrw/CommunityTweetsTimeline')
-    COMMUNITIES_MAIN_PAGE_TIMELINE = url('4-4iuIdaLPpmxKnA3mr2LA/CommunitiesMainPageTimeline')
-    JOIN_COMMUNITY = url('xZQLbDwbI585YTG0QIpokw/JoinCommunity')
-    LEAVE_COMMUNITY = url('OoS6Kd4-noNLXPZYHtygeA/LeaveCommunity')
-    REQUEST_TO_JOIN_COMMUNITY = url('XwWChphD_6g7JnsFus2f2Q/RequestToJoinCommunity')
-    MEMBERS_SLICE_TIMELINE_QUERY = url('KDAssJ5lafCy-asH4wm1dw/membersSliceTimeline_Query')
-    MODERATORS_SLICE_TIMELINE_QUERY = url('9KI_r8e-tgp3--N5SZYVjg/moderatorsSliceTimeline_Query')
-    COMMUNITY_TWEET_SEARCH_MODULE_QUERY = url('5341rmzzvdjqfmPKfoHUBw/CommunityTweetSearchModuleQuery')
-    TWEET_RESULTS_BY_REST_IDS = url('exI9CNWtq0Eoq2aSjneeew/TweetResultsByRestIds')
+    Query IDs are now fetched dynamically from Twitter's main.js bundle
+    and cached for 1 hour by default. This eliminates the need for manual updates.
+    """
+
+    # Fallback query IDs in case dynamic fetching fails
+    _FALLBACK_QUERY_IDS = {
+        'SearchTimeline': '4_KDNnhadq51k4IU9y6Nww',
+        'SimilarPosts': 'JZI0rR95OjpoijfCYD5Bvw',
+        'CreateNoteTweet': 'fYQvDY-3RRWP3Afosgavhw',
+        'CreateTweet': 'ZSBCfCefJFumbPcLcwR64Q',
+        'CreateScheduledTweet': 'LCVzRQGxOaGnOnYH01NQXg',
+        'DeleteTweet': 'VaenaVgh5q5ih7kvyVjgtg',
+        'UserByScreenName': '96tVxbPqMZDoYB5pmzezKA',
+        'UserByRestId': 'FEomBoY_XkBgfqBPWktRMw',
+        'TweetDetail': 'JgryuItLZQ9V56vHjGIWWw',
+        'TweetResultByRestId': 'URPP6YZ5eDCjdVMSREn4gg',
+        'FetchScheduledTweets': 'ITtjAzvlZni2wWXwf295Qg',
+        'DeleteScheduledTweet': 'CTOVqej0JBXAZSwkp1US0g',
+        'Retweeters': 'X-XEqG5qHQSAwmvy00xfyQ',
+        'Favoriters': 'LLkw5EcVutJL6y-2gkz22A',
+        'BirdwatchFetchOneNote': 'fKWPPj271aTM-AB9Xp48IA',
+        'UserTweets': 'oBjKz90dxeaKJLDRsW9RPw',
+        'UserTweetsAndReplies': 'V-upWd0yOl6uMgrfJvf5zQ',
+        'UserMedia': '1sfLYBlfEneWDhkHSv_9hw',
+        'Likes': 'Lrbi1V3Vw4X_kYR2X1ogAg',
+        'UserHighlightsTweets': 'FAmk6_XjKCHU4ztapxoWTw',
+        'HomeTimeline': 'i-osUr1ggVtNkzSgVkUdrA',
+        'HomeLatestTimeline': 'CbqC-3PKr4m5zDk66V-QDw',
+        'FavoriteTweet': 'lI07N6Otwv1PhnEgXILM7A',
+        'UnfavoriteTweet': 'ZYKSe-w7KEslx3JhSIk5LA',
+        'CreateRetweet': 'ojPdsZsimiJrUGLR1sjUtA',
+        'DeleteRetweet': 'iQtK4dl5hBmXewYZuEOKVw',
+        'CreateBookmark': 'aoDbu3RHznuiSkQ9aNM67Q',
+        'bookmarkTweetToFolder': '4KHZvvNbHNf07bsgnL9gWA',
+        'DeleteBookmark': 'Wlmlj2-xzyS1GN3a6cj-mQ',
+        'Bookmarks': 'qToeLeMs43Q8cr7tRYXmaQ',
+        'BookmarkFolderTimeline': '8HoabOvl7jl9IC1Aixj-vg',
+        'BookmarksAllDelete': 'skiACZKC1GDYli-M8RzEPQ',
+        'BookmarkFoldersSlice': 'i78YDd0Tza-dV4SYs58kRg',
+        'EditBookmarkFolder': 'a6kPp1cS1Dgbsjhapz1PNw',
+        'DeleteBookmarkFolder': '2UTTsO-6zs93XqlEUZPsSg',
+        'createBookmarkFolder': '6Xxqpq8TM_CREYiuof_h5w',
+        'Followers': 'n0DYVxSy2skgJTZJjCTEIg',
+        'BlueVerifiedFollowers': 'viXlSXeFlYuahCfXmj8zNw',
+        'FollowersYouKnow': 'OfPaUXl4XICEHKg_GcdIiQ',
+        'Following': 'XKrIB4_YBx_J3JsUyDbruw',
+        'UserCreatorSubscriptions': 'Oak_1u8he9cgVprF8L1GTA',
+        'useDMReactionMutationAddMutation': 'VyDyV9pC2oZEj6g52hgnhA',
+        'useDMReactionMutationRemoveMutation': 'bV_Nim3RYHsaJwMkTXJ6ew',
+        'DMMessageDeleteMutation': 'BJ6DtxA2llfjnRoRjaiIiw',
+        'AddParticipantsMutation': 'oBwyQ0_xVbAQ8FAyG0pCRA',
+        'CreateList': 'EYg7JZU3A1eJ-wr2eygPHQ',
+        'EditListBanner': 't_DsROHldculsB0B9BUAWw',
+        'DeleteListBanner': 'Y90WuxdWugtMRJhkXTdvzg',
+        'UpdateList': 'dIEI1sbSAuZlxhE0ggrezA',
+        'ListAddMember': 'lLNsL7mW6gSEQG6rXP7TNw',
+        'ListRemoveMember': 'cvDFkG5WjcXV0Qw5nfe1qQ',
+        'ListsManagementPageTimeline': '47170qwZCt5aFo9cBwFoNA',
+        'ListByRestId': '9hbYpeVBMq8-yB8slayGWQ',
+        'ListLatestTweetsTimeline': 'HjsWc-nwwHKYwHenbHm-tw',
+        'ListMembers': 'BQp2IEYkgxuSxqbTAr1e1g',
+        'ListSubscribers': '74wGEkaBxrdoXakWTWMxRQ',
+        'CommunitiesSearchQuery': 'daVUkhfHn7-Z8llpYVKJSw',
+        'CommunityQuery': 'lUBKrilodgg9Nikaw3cIiA',
+        'CommunityMediaTimeline': 'Ht5K2ckaZYAOuRFmFfbHig',
+        'CommunityTweetsTimeline': 'mhwSsmub4JZgHcs0dtsjrw',
+        'CommunitiesMainPageTimeline': '4-4iuIdaLPpmxKnA3mr2LA',
+        'JoinCommunity': 'xZQLbDwbI585YTG0QIpokw',
+        'LeaveCommunity': 'OoS6Kd4-noNLXPZYHtygeA',
+        'RequestToJoinCommunity': 'XwWChphD_6g7JnsFus2f2Q',
+        'membersSliceTimeline_Query': 'KDAssJ5lafCy-asH4wm1dw',
+        'moderatorsSliceTimeline_Query': '9KI_r8e-tgp3--N5SZYVjg',
+        'CommunityTweetSearchModuleQuery': '5341rmzzvdjqfmPKfoHUBw',
+        'TweetResultsByRestIds': 'exI9CNWtq0Eoq2aSjneeew',
+    }
+
+    def __init__(self, client: ClientType) -> None:
+        self.client = client
+
+    async def _get_url(self, operation_name: str) -> str:
+        """
+        Gets the GraphQL endpoint URL for an operation.
+
+        Tries to fetch the query ID dynamically, falls back to hardcoded IDs if that fails.
+        """
+        try:
+            query_id = await get_dynamic_query_id(self.client, operation_name)
+        except (KeyError, RuntimeError):
+            # Fall back to hardcoded query ID
+            query_id = self._FALLBACK_QUERY_IDS.get(operation_name)
+            if not query_id:
+                raise ValueError(f"Unknown GraphQL operation: {operation_name}")
+
+        return f'https://{DOMAIN}/i/api/graphql/{query_id}/{operation_name}'
+
+    async def search_timeline(self) -> str:
+        return await self._get_url('SearchTimeline')
+
+    async def similar_posts(self) -> str:
+        return await self._get_url('SimilarPosts')
+
+    async def create_note_tweet(self) -> str:
+        return await self._get_url('CreateNoteTweet')
+
+    async def create_tweet(self) -> str:
+        return await self._get_url('CreateTweet')
+
+    async def create_scheduled_tweet(self) -> str:
+        return await self._get_url('CreateScheduledTweet')
+
+    async def delete_tweet(self) -> str:
+        return await self._get_url('DeleteTweet')
+
+    async def user_by_screen_name(self) -> str:
+        return await self._get_url('UserByScreenName')
+
+    async def user_by_rest_id(self) -> str:
+        return await self._get_url('UserByRestId')
+
+    async def tweet_detail(self) -> str:
+        return await self._get_url('TweetDetail')
+
+    async def tweet_result_by_rest_id(self) -> str:
+        return await self._get_url('TweetResultByRestId')
+
+    async def fetch_scheduled_tweets(self) -> str:
+        return await self._get_url('FetchScheduledTweets')
+
+    async def delete_scheduled_tweet(self) -> str:
+        return await self._get_url('DeleteScheduledTweet')
+
+    async def retweeters(self) -> str:
+        return await self._get_url('Retweeters')
+
+    async def favoriters(self) -> str:
+        return await self._get_url('Favoriters')
+
+    async def fetch_community_note(self) -> str:
+        return await self._get_url('BirdwatchFetchOneNote')
+
+    async def user_tweets(self) -> str:
+        return await self._get_url('UserTweets')
+
+    async def user_tweets_and_replies(self) -> str:
+        return await self._get_url('UserTweetsAndReplies')
+
+    async def user_media(self) -> str:
+        return await self._get_url('UserMedia')
+
+    async def user_likes(self) -> str:
+        return await self._get_url('Likes')
+
+    async def user_highlights_tweets(self) -> str:
+        return await self._get_url('UserHighlightsTweets')
+
+    async def home_timeline(self) -> str:
+        return await self._get_url('HomeTimeline')
+
+    async def home_latest_timeline(self) -> str:
+        return await self._get_url('HomeLatestTimeline')
+
+    async def favorite_tweet(self) -> str:
+        return await self._get_url('FavoriteTweet')
+
+    async def unfavorite_tweet(self) -> str:
+        return await self._get_url('UnfavoriteTweet')
+
+    async def create_retweet(self) -> str:
+        return await self._get_url('CreateRetweet')
+
+    async def delete_retweet(self) -> str:
+        return await self._get_url('DeleteRetweet')
+
+    async def create_bookmark(self) -> str:
+        return await self._get_url('CreateBookmark')
+
+    async def bookmark_to_folder(self) -> str:
+        return await self._get_url('bookmarkTweetToFolder')
+
+    async def delete_bookmark(self) -> str:
+        return await self._get_url('DeleteBookmark')
+
+    async def bookmarks(self) -> str:
+        return await self._get_url('Bookmarks')
+
+    async def bookmark_folder_timeline(self) -> str:
+        return await self._get_url('BookmarkFolderTimeline')
+
+    async def bookmarks_all_delete(self) -> str:
+        return await self._get_url('BookmarksAllDelete')
+
+    async def bookmark_folders_slice(self) -> str:
+        return await self._get_url('BookmarkFoldersSlice')
+
+    async def edit_bookmark_folder(self) -> str:
+        return await self._get_url('EditBookmarkFolder')
+
+    async def delete_bookmark_folder(self) -> str:
+        return await self._get_url('DeleteBookmarkFolder')
+
+    async def create_bookmark_folder(self) -> str:
+        return await self._get_url('createBookmarkFolder')
+
+    async def followers(self) -> str:
+        return await self._get_url('Followers')
+
+    async def blue_verified_followers(self) -> str:
+        return await self._get_url('BlueVerifiedFollowers')
+
+    async def followers_you_know(self) -> str:
+        return await self._get_url('FollowersYouKnow')
+
+    async def following(self) -> str:
+        return await self._get_url('Following')
+
+    async def user_creator_subscriptions(self) -> str:
+        return await self._get_url('UserCreatorSubscriptions')
+
+    async def user_dm_reaction_mutation_add_mutation(self) -> str:
+        return await self._get_url('useDMReactionMutationAddMutation')
+
+    async def user_dm_reaction_mutation_remove_mutation(self) -> str:
+        return await self._get_url('useDMReactionMutationRemoveMutation')
+
+    async def dm_message_delete_mutation(self) -> str:
+        return await self._get_url('DMMessageDeleteMutation')
+
+    async def add_participants_mutation(self) -> str:
+        return await self._get_url('AddParticipantsMutation')
+
+    async def create_list(self) -> str:
+        return await self._get_url('CreateList')
+
+    async def edit_list_banner(self) -> str:
+        return await self._get_url('EditListBanner')
+
+    async def delete_list_banner(self) -> str:
+        return await self._get_url('DeleteListBanner')
+
+    async def update_list(self) -> str:
+        return await self._get_url('UpdateList')
+
+    async def list_add_member(self) -> str:
+        return await self._get_url('ListAddMember')
+
+    async def list_remove_member(self) -> str:
+        return await self._get_url('ListRemoveMember')
+
+    async def list_management_pace_timeline(self) -> str:
+        return await self._get_url('ListsManagementPageTimeline')
+
+    async def list_by_rest_id(self) -> str:
+        return await self._get_url('ListByRestId')
+
+    async def list_latest_tweets_timeline(self) -> str:
+        return await self._get_url('ListLatestTweetsTimeline')
+
+    async def list_members(self) -> str:
+        return await self._get_url('ListMembers')
+
+    async def list_subscribers(self) -> str:
+        return await self._get_url('ListSubscribers')
+
+    async def search_community(self) -> str:
+        return await self._get_url('CommunitiesSearchQuery')
+
+    async def community_query(self) -> str:
+        return await self._get_url('CommunityQuery')
+
+    async def community_media_timeline(self) -> str:
+        return await self._get_url('CommunityMediaTimeline')
+
+    async def community_tweets_timeline(self) -> str:
+        return await self._get_url('CommunityTweetsTimeline')
+
+    async def communities_main_page_timeline(self) -> str:
+        return await self._get_url('CommunitiesMainPageTimeline')
+
+    async def join_community(self) -> str:
+        return await self._get_url('JoinCommunity')
+
+    async def leave_community(self) -> str:
+        return await self._get_url('LeaveCommunity')
+
+    async def request_to_join_community(self) -> str:
+        return await self._get_url('RequestToJoinCommunity')
+
+    async def members_slice_timeline_query(self) -> str:
+        return await self._get_url('membersSliceTimeline_Query')
+
+    async def moderators_slice_timeline_query(self) -> str:
+        return await self._get_url('moderatorsSliceTimeline_Query')
+
+    async def community_tweet_search_module_query(self) -> str:
+        return await self._get_url('CommunityTweetSearchModuleQuery')
+
+    async def tweet_results_by_rest_ids(self) -> str:
+        return await self._get_url('TweetResultsByRestIds')
 
 
 class GQLClient:
