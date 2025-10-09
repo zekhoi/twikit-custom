@@ -83,7 +83,7 @@ class GuestClient:
             warnings.warn(message)
 
         self.http = AsyncClient(
-            proxies=proxy,
+            proxy=proxy,
             impersonate="chrome136",
             **kwargs
         )
@@ -91,9 +91,7 @@ class GuestClient:
         self._proxy = proxy
 
         self._token = TOKEN
-        self._user_agent = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                            'AppleWebKit/537.36 (KHTML, like Gecko) '
-                            'Chrome/122.0.0.0 Safari/537.36')
+        self._user_agent = None  # Let curl_cffi set User-Agent automatically based on impersonate parameter
         self._guest_token: str | None = None  # set when activate method is called
         self.gql = GQLClient(self)
         self.v11 = V11Client(self)
@@ -115,8 +113,10 @@ class GuestClient:
                 'Accept-Language': f'{self.language},{self.language.split("-")[0]};q=0.9',
                 'Cache-Control': 'no-cache',
                 'Referer': f'https://{DOMAIN}',
-                'User-Agent': self._user_agent
             }
+            # Only override User-Agent if explicitly provided
+            if self._user_agent is not None:
+                ct_headers['User-Agent'] = self._user_agent
             await self.client_transaction.init(self.http, ct_headers)
             self.http.cookies = cookies_backup
 

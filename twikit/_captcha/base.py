@@ -31,9 +31,11 @@ class CaptchaSolver:
     async def get_unlock_html(self) -> tuple[Response, UnlockHTML]:
         headers = {
             'X-Twitter-Client-Language': 'en-US',
-            'User-Agent': self.client._user_agent,
             'Upgrade-Insecure-Requests': '1'
         }
+        # Only override User-Agent if explicitly provided by user
+        if self.client._user_agent is not None:
+            headers['User-Agent'] = self.client._user_agent
         _, response = await self.client.get(
             self.CAPTCHA_URL, headers=headers
         )

@@ -117,7 +117,7 @@ class Client:
 
         self._token = TOKEN
         self._user_id = None
-        self._user_agent = user_agent or 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_6_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15'
+        self._user_agent = user_agent  # Let curl_cffi set User-Agent automatically unless explicitly provided
         self._act_as = None
 
         self.gql = GQLClient(self)
@@ -140,8 +140,10 @@ class Client:
                 'Accept-Language': f'{self.language},{self.language.split("-")[0]};q=0.9',
                 'Cache-Control': 'no-cache',
                 'Referer': f'https://{DOMAIN}',
-                'User-Agent': self._user_agent
             }
+            # Only override User-Agent if explicitly provided by user
+            if self._user_agent is not None:
+                ct_headers['User-Agent'] = self._user_agent
             await self.client_transaction.init(self.http, ct_headers)
             self.set_cookies(cookies_backup, clear_cookies=True)
 
@@ -261,8 +263,12 @@ class Client:
             'X-Twitter-Auth-Type': 'OAuth2Session',
             'X-Twitter-Active-User': 'yes',
             'Referer': f'https://{DOMAIN}/',
-            'User-Agent': self._user_agent,
         }
+
+        # Only override User-Agent if explicitly provided by user
+        # Otherwise, let curl_cffi set it automatically based on impersonate parameter
+        if self._user_agent is not None:
+            headers['User-Agent'] = self._user_agent
 
         if self.language is not None:
             headers['Accept-Language'] = self.language
