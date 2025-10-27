@@ -37,7 +37,7 @@ class Endpoint:
     CREATE_TWEET = url('ZSBCfCefJFumbPcLcwR64Q/CreateTweet')
     CREATE_SCHEDULED_TWEET = url('LCVzRQGxOaGnOnYH01NQXg/CreateScheduledTweet')
     DELETE_TWEET = url('VaenaVgh5q5ih7kvyVjgtg/DeleteTweet')
-    USER_BY_SCREEN_NAME = url('96tVxbPqMZDoYB5pmzezKA/UserByScreenName')
+    USER_BY_SCREEN_NAME = url('NimuplG1OB7Fd2btCLdBOw/UserByScreenName')
     USER_BY_REST_ID = url('FEomBoY_XkBgfqBPWktRMw/UserByRestId')
     TWEET_DETAIL = url('JgryuItLZQ9V56vHjGIWWw/TweetDetail')
     TWEET_RESULT_BY_REST_ID = url('URPP6YZ5eDCjdVMSREn4gg/TweetResultByRestId')
