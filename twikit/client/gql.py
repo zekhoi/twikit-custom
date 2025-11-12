@@ -46,7 +46,7 @@ class Endpoint:
     RETWEETERS = url('X-XEqG5qHQSAwmvy00xfyQ/Retweeters')
     FAVORITERS = url('LLkw5EcVutJL6y-2gkz22A/Favoriters')
     FETCH_COMMUNITY_NOTE = url('fKWPPj271aTM-AB9Xp48IA/BirdwatchFetchOneNote')
-    USER_TWEETS = url('QWF3SzpHmykQHsQMixG0cg/UserTweets')
+    USER_TWEETS = url('oRJs8SLCRNRbQzuZG93_oA/UserTweets')
     USER_TWEETS_AND_REPLIES = url('vMkJyzx1wdmvOeeNG0n6Wg/UserTweetsAndReplies')
     USER_MEDIA = url('2tLOJWwGuCTytDrGBg8VwQ/UserMedia')
     USER_LIKES = url('IohM3gxQHfvWePH5E3KuNA/Likes')
