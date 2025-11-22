@@ -3244,6 +3244,7 @@ class Client:
             if "message" not in item:
                 continue
             message_info = item["message"]["message_data"]
+            print(message_info)
             messages.append(
                 Message(
                     self,
