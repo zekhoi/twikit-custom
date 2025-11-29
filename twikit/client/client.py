@@ -18,7 +18,7 @@ from typing import Optional
 from .._captcha import Capsolver
 from ..bookmark import BookmarkFolder
 from ..community import Community, CommunityMember
-from ..constants import TOKEN, DOMAIN
+from ..constants import TOKEN, DOMAIN, OLD_TOKEN
 from ..errors import (
     AccountLocked,
     AccountSuspended,
@@ -112,6 +112,7 @@ class Client:
         self.client_transaction = ClientTransaction()
 
         self._token = TOKEN
+        self._old_token = OLD_TOKEN
         self._user_id = None
         self._user_agent = user_agent  # Let curl_cffi set User-Agent automatically unless explicitly provided
         self._act_as = None
@@ -345,6 +346,12 @@ class Client:
             return
 
         guest_token = await self._get_guest_token()
+        
+
+        headers = {
+            "Authorization": f"Bearer {self._old_token}",
+        }
+
 
         flow = Flow(self, guest_token)
 
@@ -401,6 +408,7 @@ class Client:
                     "web_modal": 1,
                 },
             },
+            headers=headers,
         )
         await flow.sso_init("apple")
 
@@ -416,7 +424,8 @@ class Client:
                     "response": ui_metrics_response,
                     "link": "next_link",
                 },
-            }
+            },
+            headers=headers,
         )
         await flow.execute_task(
             {
@@ -430,7 +439,8 @@ class Client:
                     ],
                     "link": "next_link",
                 },
-            }
+            },
+            headers=headers,
         )
 
         if flow.task_id == "LoginEnterAlternateIdentifierSubtask":
@@ -438,7 +448,8 @@ class Client:
                 {
                     "subtask_id": "LoginEnterAlternateIdentifierSubtask",
                     "enter_text": {"text": auth_info_2, "link": "next_link"},
-                }
+                },
+                headers=headers,
             )
 
         if flow.task_id == "DenyLoginSubtask":
@@ -450,7 +461,8 @@ class Client:
             {
                 "subtask_id": "LoginEnterPassword",
                 "enter_password": {"password": password, "link": "next_link"},
-            }
+            },
+                headers=headers,
         )
 
         if flow.task_id == "DenyLoginSubtask":
@@ -465,7 +477,8 @@ class Client:
                 {
                     "subtask_id": "LoginAcid",
                     "enter_text": {"text": input(">>> "), "link": "next_link"},
-                }
+                },
+                headers=headers,
             )
             return flow.response
 
@@ -482,14 +495,15 @@ class Client:
                 {
                     "subtask_id": "LoginTwoFactorAuthChallenge",
                     "enter_text": {"text": totp_code, "link": "next_link"},
-                }
+                },
+                headers=headers,
             )
 
         await flow.execute_task(
             {
                 "subtask_id": "AccountDuplicationCheck",
                 "check_logged_in_account": {"link": "AccountDuplicationCheck_false"},
-            }
+            },
         )
 
         if cookies_file:

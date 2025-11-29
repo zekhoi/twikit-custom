@@ -10,7 +10,7 @@ from curl_cffi.requests import AsyncSession as AsyncClient, Response
 
 from ..client.gql import GQLClient
 from ..client.v11 import V11Client
-from ..constants import DOMAIN, TOKEN
+from ..constants import DOMAIN, TOKEN, OLD_TOKEN
 from ..errors import (
     BadRequest,
     Forbidden,
@@ -91,6 +91,7 @@ class GuestClient:
         self._proxy = proxy
 
         self._token = TOKEN
+        self._old_token = OLD_TOKEN
         self._user_agent = None  # Let curl_cffi set User-Agent automatically based on impersonate parameter
         self._guest_token: str | None = None  # set when activate method is called
         self.gql = GQLClient(self)
@@ -179,7 +180,7 @@ class GuestClient:
         Base headers for Twitter API requests.
         """
         headers = {
-            'authorization': f'Bearer {self._token}',
+            'authorization': f'Bearer {self._old_token}',
             'content-type': 'application/json',
             'X-Twitter-Active-User': 'yes',
             'Referer': f'https://{DOMAIN}',

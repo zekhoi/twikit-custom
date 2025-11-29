@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
     ClientType = Client | GuestClient
 
-from ..constants import DOMAIN
+from ..constants import DOMAIN, OLD_TOKEN
 
 
 class Endpoint:
@@ -61,6 +61,8 @@ class V11Client:
 
     async def guest_activate(self):
         headers = self.base._base_headers
+        headers.pop("authorization", None)
+        headers["authorization"] = f"Bearer {OLD_TOKEN}"
         headers.pop("X-Twitter-Active-User", None)
         headers.pop("X-Twitter-Auth-Type", None)
         return await self.base.post(Endpoint.GUEST_ACTIVATE, headers=headers, data={})
@@ -82,12 +84,15 @@ class V11Client:
 
         headers = {
             "x-guest-token": guest_token,
-            "Authorization": "Bearer AAAAAAAAAAAAAAAAAAAAAFQODgEAAAAAVHTp76lzh3rFzcHbmHVvQxYYpTw%3DckAlMINMjmCwxUcaXbAN4XqJVdgMJaHqNOFgPMK0zN1qLqLQCF",
+            "Authorization": f"Bearer {self.base._token}",
         }
 
         if self.base._get_csrf_token():
             headers["x-csrf-token"] = self.base._get_csrf_token()
             headers["x-twitter-auth-type"] = "OAuth2Session"
+
+        extra_headers = kwargs.pop("headers", {})
+        headers.update(extra_headers)
 
         return await self.base.post(
             Endpoint.ONBOARDING_TASK, json=data, headers=headers, **kwargs
@@ -95,6 +100,8 @@ class V11Client:
 
     async def sso_init(self, provider, guest_token):
         headers = self.base._base_headers | {"x-guest-token": guest_token}
+        headers.pop("authorization", None)
+        headers["authorization"] = f"Bearer {OLD_TOKEN}"
         headers.pop("X-Twitter-Active-User")
         headers.pop("X-Twitter-Auth-Type")
         return await self.base.post(
