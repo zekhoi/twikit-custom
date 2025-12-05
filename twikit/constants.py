@@ -44,7 +44,8 @@ FEATURES = {
     'responsive_web_media_download_video_enabled': False,
     'responsive_web_graphql_skip_user_profile_image_extensions_enabled': False,
     'rweb_video_timestamps_enabled': True,
-    'rweb_video_screen_enabled': True
+    'rweb_video_screen_enabled': True,
+    'responsive_web_profile_redirect_enabled': True
 }
 
 USER_FEATURES = {
