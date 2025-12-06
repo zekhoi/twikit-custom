@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     ClientType = Client | GuestClient
 
 from ..constants import DOMAIN, OLD_TOKEN
-
+import curl_cffi
 
 class Endpoint:
     GUEST_ACTIVATE = f"https://api.{DOMAIN}/1.1/guest/activate.json"
@@ -143,15 +143,17 @@ class V11Client:
         }
         headers = self.base._base_headers
         headers.pop("content-type")
-        files = {
-            "media": (
-                "blob",
-                chunk_stream,
-                "application/octet-stream",
-            )
-        }
+        
+        mp = curl_cffi.CurlMime()
+
+        mp.addpart(
+            name="media",
+            data=chunk_stream.getvalue(),
+            content_type="application/octet-stream",
+        )
+
         return await self.upload_media(
-            "POST", is_long_video, params=params, headers=headers, files=files
+            "POST", is_long_video, params=params, headers=headers, multipart=mp
         )
 
     async def upload_media_finelize(self, is_long_video, media_id):
